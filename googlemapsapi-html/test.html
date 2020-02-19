@@ -1,0 +1,118 @@
+<div id="map"></div>
+
+<!-- start of JS -->
+<script
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBVWYNykoEI-bVYIgavHIqLYkV5jGy87GQ">
+  </script>
+
+  <script src="https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/markerclusterer.js">
+</script>
+
+    <script>
+
+    function getLocation(){
+        var x=document.getElementById("show");
+        if (navigator.geolocation){
+            navigator.geolocation.getCurrentPosition(showPosition);
+          }
+        else{
+          x.innerHTML="Geolocation is not supported by this browser.";
+        }
+    }
+
+    function showPosition(position){
+      yco = position.coords.latitude;
+      xco = position.coords.longitude;
+      console.log("after: " + [yco, xco]);
+
+      //init map
+      initMap()
+    }
+     var yco, xco
+     getLocation()
+
+//---- get location of user//
+
+      function initMap() {
+        var pos = {lat: yco, lng: xco};
+        console.log()
+        console.log("center" + pos)
+        console.log("lat" + yco + "lng" + xco)
+
+        //setting up map
+        var map = new google.maps.Map(document.getElementById('map'), {
+          zoom: 18,
+          center: {lat: yco, lng: xco}
+        });
+
+
+        //marker for current location
+        var marker = new google.maps.Marker({position: pos, map: map});
+
+        //temp info window
+        infoWindow = new google.maps.InfoWindow;
+        infoWindow.setPosition(pos);
+        infoWindow.setContent('Location found.');
+        infoWindow.open(map);
+
+        //image for flags
+        var image = 'https://developers.google.com/maps/documentation/javascript/examples/full/images/beachflag.png';
+
+//          console.log(markers);
+
+        //to bounce
+        //function toggleBounce(markers) {
+        //  if (markers.getAnimation() !== null) {
+        //    markers.setAnimation(null);
+        //  } else {
+        //    markers.setAnimation(google.maps.Animation.BOUNCE);
+        //  }
+        //}
+
+        // Add a marker clusterer to manage the markers.
+                 var markerCluster = new MarkerClusterer(map, markers,
+                     {imagePath: 'https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m'});
+                     //finding location of markers
+                     var locations = [
+                       {%for i in locations%}
+                       {lat: {{i.xcoords}}, lng: {{i.ycoords}}},
+                       {% endfor %}
+                     ]
+                     //all markers
+                     var markers = locations.map(function(location, i) {
+                       return new google.maps.Marker({
+                         position: location,
+                         icon: image
+                       });
+                      console.log("test");
+                      markers[i].addEventListener('click', toggleBounce(markers[i]));
+                     });
+      //drawing line
+            //finding shortest distance
+            var distance = [999, 999]
+            {%for i in locations%}
+            if ((Math.pow((distance[0] - xco), 2) + Math.pow((distance[1] - yco), 2)) > (Math.pow(({{i.xcoords}} - xco), 2) + Math.pow(({{i.ycoords}} - yco), 2))){
+              distance = [{{i.xcoords}}, {{i.ycoords}}]
+            }
+            {% endfor %}
+            console.log(pos);
+              distance = {lat: distance[0], lng: distance[1]}
+            //ploting closest marker
+            var closest = new google.maps.Marker({position: distance, icon: image, map: map});
+  //            closest.addListener('click', toggleBounce(closest));
+//debugger
+            //drawing line
+            var flightPlanCoordinates = [
+            pos, distance
+          ];
+          var flightPath = new google.maps.Polyline({
+           path: flightPlanCoordinates,
+           geodesic: true,
+           strokeColor: '#FF0000',
+           strokeOpacity: 1.0,
+           strokeWeight: 4
+         });
+         flightPath.setMap(map);
+        console.log(distance);
+      }
+    </script>
